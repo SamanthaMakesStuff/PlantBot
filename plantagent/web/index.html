@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Your plant</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<svg class="sprite" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="leaf" viewBox="0 0 64 64">
+      <defs>
+        <radialGradient id="leafGrad" cx="42%" cy="38%" r="68%">
+          <stop offset="0" class="g0"/>
+          <stop offset="1" class="g1"/>
+        </radialGradient>
+      </defs>
+      <circle cx="32" cy="32" r="29" fill="url(#leafGrad)"/>
+      <g class="veins" fill="none" stroke-linecap="round">
+        <path d="M32 32 L56 32"/><path d="M32 32 L49 49"/><path d="M32 32 L32 56"/><path d="M32 32 L15 49"/>
+        <path d="M32 32 L8 32"/><path d="M32 32 L15 15"/><path d="M32 32 L32 8"/><path d="M32 32 L49 15"/>
+      </g>
+      <circle cx="32" cy="32" r="3.2" class="stalk"/>
+    </symbol>
+  </defs>
+</svg>
+
+<main id="login" class="login" hidden>
+  <svg class="leaf big" aria-hidden="true"><use href="#leaf"/></svg>
+  <h1>Log in</h1>
+  <p class="soft">Enter the password from your .env file to see how your plant is doing.</p>
+  <form id="login-form">
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required>
+    <p id="login-error" class="error" role="alert"></p>
+    <button type="submit" class="primary">Log in</button>
+  </form>
+</main>
+
+<div id="app" class="app" data-pane="chat" hidden>
+  <header class="top">
+    <svg id="avatar" class="leaf" aria-hidden="true"><use href="#leaf"/></svg>
+    <div class="who">
+      <h1 id="name">Your plant</h1>
+      <p id="subtitle" class="soft"></p>
+    </div>
+    <div class="usage" id="usage" hidden>
+      <div class="meter" role="progressbar" aria-label="Calls used today" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+      <p id="usage-text" class="soft small"></p>
+    </div>
+  </header>
+
+  <div class="layout">
+    <section id="chat" class="chat" aria-label="Chat">
+      <div id="messages" class="messages" role="log" aria-live="polite">
+        <p id="empty-chat" class="soft empty" hidden>Say hello. Everything you write here is kept in the chat log.</p>
+      </div>
+      <form id="composer" class="composer">
+        <div id="attached" class="attached" hidden>
+          <span id="attached-name"></span>
+          <button type="button" id="attached-remove" class="chip-x" aria-label="Remove document">Remove</button>
+        </div>
+        <div class="composer-row">
+          <input id="file" type="file" class="sr" accept=".txt,.md,.markdown,.csv,.json,.html,.htm,.docx,.epub,.pdf,.jpg,.jpeg,.png,.gif,.webp,.heic" tabindex="-1">
+          <button type="button" id="attach" class="quiet" aria-label="Attach a document">Attach</button>
+          <label for="text" class="sr">Message</label>
+          <textarea id="text" rows="1" maxlength="2000" placeholder="Write to your plant" autocomplete="off"></textarea>
+          <button type="submit" class="primary" id="send">Send</button>
+        </div>
+      </form>
+    </section>
+
+    <section id="inside" class="inside" aria-label="Inside your plant's world">
+      <div class="tabs" role="tablist" aria-label="Views">
+        <button role="tab" id="tab-activity" data-tab="activity" aria-selected="true" aria-controls="panel-activity">Activity</button>
+        <button role="tab" id="tab-diary" data-tab="diary" aria-selected="false" aria-controls="panel-diary">Diary</button>
+        <button role="tab" id="tab-memory" data-tab="memory" aria-selected="false" aria-controls="panel-memory">Memory</button>
+        <button role="tab" id="tab-wishes" data-tab="wishes" aria-selected="false" aria-controls="panel-wishes">Wishes <span id="wish-count" class="badge" hidden>0</span></button>
+        <button role="tab" id="tab-library" data-tab="library" aria-selected="false" aria-controls="panel-library">Library</button>
+        <button role="tab" id="tab-notebook" data-tab="notebook" aria-selected="false" aria-controls="panel-notebook">Notebook</button>
+        <button role="tab" id="tab-about" data-tab="about" aria-selected="false" aria-controls="panel-about">About</button>
+      </div>
+      <div class="actions">
+        <button type="button" id="btn-think" class="quiet">Quiet moment</button>
+        <button type="button" id="btn-sleep" class="quiet">Sleep now</button>
+        <button type="button" id="btn-logout" class="quiet">Log out</button>
+      </div>
+      <div class="panels">
+        <div id="panel-activity" role="tabpanel" aria-labelledby="tab-activity"></div>
+        <div id="panel-diary" role="tabpanel" aria-labelledby="tab-diary" hidden></div>
+        <div id="panel-memory" role="tabpanel" aria-labelledby="tab-memory" hidden></div>
+        <div id="panel-wishes" role="tabpanel" aria-labelledby="tab-wishes" hidden></div>
+        <div id="panel-library" role="tabpanel" aria-labelledby="tab-library" hidden></div>
+        <div id="panel-notebook" role="tabpanel" aria-labelledby="tab-notebook" hidden></div>
+        <div id="panel-about" role="tabpanel" aria-labelledby="tab-about" hidden></div>
+      </div>
+    </section>
+  </div>
+
+  <nav class="nav" aria-label="Switch view">
+    <button type="button" data-pane="chat" aria-pressed="true">Chat</button>
+    <button type="button" data-pane="inside" aria-pressed="false">Inside</button>
+  </nav>
+</div>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

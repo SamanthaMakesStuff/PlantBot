@@ -1,0 +1,33 @@
+{
+  "_note": "Captured from the B&Q houseplant page (Sold by B&Q, GBP 3-20) on 25 Oct 2026. Stock changes: check the shop. Orchids and non-plant items were removed on purpose. The agent chooses a 'variety'; you then buy the matching product.",
+  "plants": [
+    {"variety": "Monkey puzzle tree", "products": [{"name": "Verve Monkey Puzzle Tree in Assorted Zinc Decorative pot 12cm", "price": "£14"}], "care": "Normally a hardy outdoor conifer sold small as a gift plant. Check the label; it may not enjoy a warm room long term."},
+    {"variety": "Bromeliad", "products": [{"name": "Verve Adventure Mix Bromeliad in Terracotta Plastic Grow pot 12cm", "price": "£8"}, {"name": "Verve Red Family Bromeliad in Terracotta Plastic Grow pot 10.5cm", "price": "£10"}], "care": "Bright indirect light. Water goes in the central cup of leaves. Colourful, long-lived flower spike."},
+    {"variety": "Flaming Katy", "products": [{"name": "Verve Flaming katy in Assorted Ceramic Decorative pot 9cm", "price": "£10"}], "care": "A succulent with clusters of bright flowers. Likes bright light and drying out between waterings."},
+    {"variety": "Peace lily", "products": [{"name": "Peace lily in Terracotta Plastic Grow pot", "price": "£6"}, {"name": "Peace lily (larger)", "price": "£12"}, {"name": "Verve Peace lily", "price": "£15"}], "care": "Droops dramatically when thirsty and perks up soon after a drink. Bright-ish indirect light. Toxic to pets."},
+    {"variety": "Boston fern", "products": [{"name": "Verve Boston fern in Terracotta Plastic Grow pot", "price": "£4.50"}, {"name": "Verve Boston fern (larger)", "price": "£12"}], "care": "Loves humidity and evenly moist soil. Drops fronds in dry air."},
+    {"variety": "Bonsai", "products": [{"name": "Verve Bonsai in Grey Ceramic Decorative pot", "price": "£18"}], "care": "Species varies, so check the label. Needs careful watering and plenty of light."},
+    {"variety": "ZZ plant", "products": [{"name": "Verve zz plant Zamiolculcas in Terracotta Plastic Grow pot", "price": "£7"}], "care": "Almost indestructible. Tolerates low light and forgets to be thirsty for weeks."},
+    {"variety": "Chinese money plant", "products": [{"name": "Chinese Money Plant Succulent in Black or terracotta Plastic Grow pot", "price": "£7"}], "care": "Round coin leaves that lean towards light. Water when the top of the soil is dry. Makes babies."},
+    {"variety": "Spider plant", "products": [{"name": "Verve Spider plant in Terracotta Plastic Grow pot", "price": "£4.50"}], "care": "Easy and forgiving. Grows dangling baby plants on long stems."},
+    {"variety": "Snake plant", "products": [{"name": "Verve Assorted Snake plant in Terracotta Plastic Grow pot", "price": "£12"}], "care": "Tough, upright, tolerates low light, hates being overwatered."},
+    {"variety": "Trailing ivy", "products": [{"name": "Verve Trailing Ivy in Terracotta Plastic Grow pot", "price": "£4"}], "care": "Likes cool, bright rooms and slightly moist soil. Trails and climbs."},
+    {"variety": "Prayer plant", "products": [{"name": "Verve Prayer plant in Pale grey Terracotta Decorative pot 13cm", "price": "£12"}, {"name": "Verve Prayer plant (other pot)", "price": "£12"}], "care": "Leaves fold upright at night like praying hands. Likes humidity and indirect light."},
+    {"variety": "Aloe vera", "products": [{"name": "Verve Aloe vera", "price": "£6"}], "care": "Bright light, rare watering, stores water in thick leaves."},
+    {"variety": "Succulent mix", "products": [{"name": "Piccomini mix Succulent in Assorted Ceramic Decorative pot 6cm", "price": "£3.50"}, {"name": "Verve Succulent", "price": "£6"}, {"name": "Succulent", "price": "£6.50"}, {"name": "Animal Succulent", "price": "£4.50"}], "care": "Bright light and very little water. Small and slow."},
+    {"variety": "Leopard lily", "products": [{"name": "Verve Leopard lily", "price": "£7"}], "care": "Spotted leaves grown from a bulb. Bright indirect light, moderate water."},
+    {"variety": "Monstera", "products": [{"name": "Verve Monstera Terracotta Decorative pot 13cm", "price": "£12"}], "care": "Big leaves that split as it matures. Bright indirect light. Water when the top of the soil is dry."},
+    {"variety": "Palm", "products": [{"name": "Verve Palm", "price": "£7.50"}], "care": "Bright indirect light. Soil moist but never soggy."},
+    {"variety": "Citrus", "products": [{"name": "Verve Citrus", "price": "£20"}], "care": "Wants a lot of light. Soil moist but not soggy. Can flower and, in theory, fruit."},
+    {"variety": "Dragon tree", "products": [{"name": "Dragon tree", "price": "£6"}, {"name": "Verve Dragon tree", "price": "£18"}, {"name": "Verve Dragon tree (large)", "price": "£20"}], "care": "Slow, spiky and tolerant. Water sparingly. Toxic to pets."},
+    {"variety": "Philodendron", "products": [{"name": "Verve Philodendron", "price": "£8"}], "care": "Easy climber or trailer. Adaptable to most light."},
+    {"variety": "Devil's ivy", "products": [{"name": "Verve Devil's ivy", "price": "£15"}], "care": "Also called pothos. Very easy, trails, tolerates low light."},
+    {"variety": "Anthurium", "products": [{"name": "Verve Anthurium", "price": "£10"}, {"name": "Verve Anthurium mix", "price": "£9"}], "care": "Glossy flowers that last for months. Likes bright indirect light and humidity."},
+    {"variety": "Umbrella tree", "products": [{"name": "Verve Umbrella tree", "price": "£8"}], "care": "Hand-shaped leaves in a ring. Bright indirect light. Dislikes overwatering."},
+    {"variety": "Fittonia", "products": [{"name": "Verve Fittonia", "price": "£7.50"}], "care": "Veined leaves. Collapses dramatically when dry and recovers within hours of a drink. Loves humidity."},
+    {"variety": "Crocodile fern", "products": [{"name": "Verve Crocodile fern", "price": "£7"}], "care": "Textured, scaly-looking fronds. Humid and evenly moist."},
+    {"variety": "Pineapple plant", "products": [{"name": "Verve Pineapple plant", "price": "£18"}], "care": "A bromeliad with spiky leaves. Bright light, little water."},
+    {"variety": "Cactus mix", "products": [{"name": "Verve Cactus mix in Terracotta Decorative pot", "price": "£3.50"}, {"name": "Verve Cactus mix (larger)", "price": "£5.50"}], "care": "Bright light and very rare watering. Spiky and patient."},
+    {"variety": "Echeveria", "products": [{"name": "Echeveria rosetta mix in Terracotta Plastic Grow pot", "price": "£4"}], "care": "Rosette-shaped succulent. Loves sun, rarely needs water."}
+  ]
+}

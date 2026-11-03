@@ -1,0 +1,11 @@
+.env
+data/
+data_mock/
+data_*_backup_*/
+__pycache__/
+*.pyc
+.env.*
+!.env.example
+*.save
+*.bak
+*~
