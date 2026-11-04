@@ -71,12 +71,13 @@ def whole(text: str) -> str:
 
 
 def fetch(search: str):
-    """The best-matching article: (title, address, plain text with == Headings ==, other matching titles),
-    or None if there isn't one. One request does both the article and the list of other matches."""
+    """The best-matching article: (title, address, plain text with == Headings ==, other matching titles,
+    titles of the articles it links to), or None if there isn't one. One request does all of it."""
     params = {
         "action": "query", "format": "json", "formatversion": "2", "redirects": "1",
         "generator": "search", "gsrsearch": search, "gsrlimit": "1", "gsrnamespace": "0",
-        "prop": "extracts|info", "inprop": "url", "explaintext": "1", "exsectionformat": "wiki",
+        "prop": "extracts|info|links", "inprop": "url", "explaintext": "1", "exsectionformat": "wiki",
+        "plnamespace": "0", "pllimit": "max",
         "list": "search", "srsearch": search, "srlimit": "8", "srnamespace": "0", "srprop": "",
     }
     request = urllib.request.Request(f"{API}?{urllib.parse.urlencode(params)}", headers={"User-Agent": USER_AGENT})
@@ -103,7 +104,26 @@ def fetch(search: str):
         address = f"https://{HOST}/wiki/" + urllib.parse.quote(str(page.get("title", "")).replace(" ", "_"))
     title = str(page.get("title", ""))
     others = [t for t in matches if t and t != title][:7]
-    return title, address, str(page["extract"]), others
+    links = [str(l.get("title", "")) for l in page.get("links", []) if isinstance(l, dict) and l.get("title")]
+    return title, address, str(page["extract"]), others, links
+
+
+RELATED = 20  # linked articles to suggest
+
+
+def related(title: str, text: str, links: list) -> list:
+    """The linked articles most worth following: the article's own "See also" list first, then the links its text
+    mentions most often (an article links to hundreds of pages, most of them in passing)."""
+    linked = {l.lower(): l for l in links if l != title}
+    see_also = []
+    m = re.search(r"(?ms)^==\s*See also\s*==\s*$(.*?)(?=^==[^=]|\Z)", text)
+    for line in (m.group(1).splitlines() if m else []):
+        found = linked.get(line.strip().lower())
+        if found and found not in see_also:
+            see_also.append(found)
+    body = _without_back_matter(text).lower()
+    counted = sorted(((body.count(l.lower()), l) for l in linked.values() if l not in see_also), key=lambda c: -c[0])
+    return (see_also + [l for n, l in counted if n])[:RELATED]
 
 
 def shorten(title: str, text: str, topic: str) -> str:
@@ -126,17 +146,18 @@ def shorten(title: str, text: str, topic: str) -> str:
 
 
 def lookup(query: str):
-    """Looks a query up. Returns (title, address, text, whole article?, other matching titles) or None if nothing
-    matched. Anything is searched as it is and gives the whole article; 'X about Y' gives the parts of X about Y;
+    """Looks a query up. Returns (title, address, text, whole article?, other matching titles, related linked
+    articles) or None if nothing matched. Anything is searched as it is and gives the whole article; 'X about Y' gives the parts of X about Y;
     'X in full' is the same as plain X (kept because she may well say it)."""
     search, about, _ = _split(query)
     found = fetch(search)
     if not found:
         return None
-    title, address, text, others = found
+    title, address, text, others, links = found
+    nearby = related(title, text, links)
     if about:
-        return title, address, shorten(title, text, about), False, others
-    return title, address, whole(text), True, others
+        return title, address, shorten(title, text, about), False, others, nearby
+    return title, address, whole(text), True, others, nearby
 
 
 if __name__ == "__main__":
@@ -150,3 +171,5 @@ if __name__ == "__main__":
     print(result[2][:1500])
     if result[4]:
         print("\nOther articles that matched: " + "; ".join(result[4]))
+    if result[5]:
+        print("\nArticles it links to: " + "; ".join(result[5]))

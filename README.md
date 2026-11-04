@@ -76,7 +76,7 @@ Then:
    WIKIPEDIA=on
    ```
 3. Save the file and restart your plant (stop it with Ctrl + C and start it again, or `sudo systemctl restart plant` if it runs as a service).
-4. Optional check that your computer can reach Wikipedia: `python3 -m plantagent.wikipedia "Monstera"`. It should say **It works.**
+4. Optional check that your computer can reach Wikipedia: `python3 -m plantagent.wikipedia "Monstera"`. It should say **It works.** and end with a list of articles it links to.
 
 **To turn it off again:** change the line back to `WIKIPEDIA=off` (or delete it), save, and restart. The look-up action disappears from your plant's instructions completely.
 

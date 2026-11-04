@@ -54,6 +54,8 @@ When it's on:
 - **Only English Wikipedia.** The program fetches the article for your plant; the plant never touches the internet itself, and anything that tries to send the lookup to another website is stopped.
 - **What it sees:** the whole article (without the reference lists), plus a list of other articles that matched, so it can browse a subject. For a quick look at one part it can aim the lookup, for example `[[wiki: Monstera about propagation]]`.
 - **When:** whenever it likes, on any subject, in a chat or in its quiet time, without asking. It can follow one lookup with another, up to 3 in one message or quiet moment, so a reply always finishes.
+- **Exploring:** each article comes with up to 20 articles it links to (its "See also" picks first, then the ones it mentions most), so your plant can follow a subject from other angles.
+- **Curious, not stuck:** if it opens an article it has read before, it's reminded when, and what its notebook already says about it, so it can build on what it learnt. If its search lands on a differently named article, it's told so. Its instructions show what it has read in the last 3 days, and its quiet time suggests trying a new angle, asking you, or letting a question rest if it keeps coming back to the same one. None of this stops it reading anything, as often as it likes.
 - **Every lookup** is listed on the Activity tab with a link to the article.
 - **Cost:** a whole article is usually 5,000 to 20,000 tokens. There's no daily limit unless you set one (`WIKIPEDIA_DAILY_LIMIT=30`, for example); the daily token budget always applies.
 - **Check your computer can reach it:** `python3 -m plantagent.wikipedia "Monstera"` should say "It works."
@@ -68,7 +70,7 @@ When it's on:
 
 ## How it uses tokens
 
-Your plant's instructions are sent with every message, so during a chat they're cached: Claude re-reads them, and the conversation so far, at a tenth of the price, which makes an ordinary chat message about 85% cheaper. To keep the cache working, the time goes at the end of your newest message rather than in its instructions, and its instructions catch up with anything new (a memory, a mood change, a book summary) at least every 4 minutes. A shared book is read once for both the reply and the notes. Background jobs get only the instructions they need. The daily token budget counts cached tokens at what they actually cost.
+Your plant's instructions are sent with every message, so during a chat they're cached: Claude re-reads them, and the conversation so far, at a tenth of the price, which makes an ordinary chat message about 85% cheaper. To keep the cache working, the time goes at the end of your newest message rather than in its instructions (each of your earlier messages shows when you sent it, so it never mixes up days), and its instructions catch up with anything new (a memory, a mood change, a book summary) at least every 4 minutes. A shared book is read once for both the reply and the notes. Background jobs get only the instructions they need. The daily token budget counts cached tokens at what they actually cost.
 
 ## Safety notes
 

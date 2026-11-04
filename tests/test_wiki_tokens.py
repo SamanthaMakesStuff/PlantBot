@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from plantagent import brains, wikipedia
 from plantagent.brains import AnthropicBrain, BrainResult
+from plantagent.agent import PlantAgent
 from plantagent.server import make_handler
 from test_basic import make
 from test_web import Client, build
@@ -61,7 +62,7 @@ class WikipediaModuleTests(unittest.TestCase):
     def test_the_short_version_keeps_the_opening_sections_and_the_right_passages(self):
         opener = FakeOpener(api_reply([{"title": "Pilea peperomioides", "extract": ARTICLE,
                                         "fullurl": "https://en.wikipedia.org/wiki/Pilea_peperomioides"}], ["Pilea", "Urticaceae"]))
-        title, address, text, full, others = self.fetch_with(opener, "Pilea peperomioides about propagation")
+        title, address, text, full, others, nearby = self.fetch_with(opener, "Pilea peperomioides about propagation")
         self.assertEqual(others, ["Pilea", "Urticaceae"])
         self.assertEqual((title, full), ("Pilea peperomioides", False))
         self.assertTrue(text.startswith("Pilea peperomioides is a species"))
@@ -80,7 +81,7 @@ class WikipediaModuleTests(unittest.TestCase):
             opener = FakeOpener(api_reply([{"title": "Pilea peperomioides", "extract": ARTICLE, "fullurl": "x"}]))
             self.assertTrue(self.fetch_with(opener, query)[3], query)
         opener = FakeOpener(api_reply([{"title": "Pilea peperomioides", "extract": ARTICLE, "fullurl": "x"}]))
-        title, address, text, full, others = self.fetch_with(opener, "Pilea peperomioides")
+        title, address, text, full, others, nearby = self.fetch_with(opener, "Pilea peperomioides")
         self.assertTrue(full)
         self.assertEqual(others, [])
         self.assertEqual(address, "https://en.wikipedia.org/wiki/Pilea_peperomioides")  # a strange address is replaced
@@ -90,6 +91,21 @@ class WikipediaModuleTests(unittest.TestCase):
         self.assertNotIn("Some links", text)
         huge = wikipedia.whole("Intro\n\n== Body ==\n" + "x" * 200_000)
         self.assertLess(len(huge), wikipedia.FULL_CHARS + 100)
+
+    def test_linked_articles_come_back_see_also_first_then_most_mentioned(self):
+        article = ("Xylem carries water. Water moves by transpiration. Transpiration pulls water up through the "
+                   "vessels; transpiration matters. Cohesion helps.\n\n== Structure ==\nVessels and tracheids. "
+                   "Vessels again.\n\n== See also ==\nPhloem\nVascular tissue\n\n== References ==\nCohesion etc.")
+        links = ["Transpiration", "Vessel element", "Phloem", "Vascular tissue", "Cohesion (chemistry)", "Tracheid",
+                 "Something never mentioned"]
+        opener = FakeOpener(api_reply([{"title": "Xylem", "extract": article, "fullurl": "x",
+                                        "links": [{"ns": 0, "title": t} for t in links]}]))
+        title, address, text, full, others, nearby = self.fetch_with(opener, "Xylem")
+        self.assertEqual(nearby[:2], ["Phloem", "Vascular tissue"])  # the editors' own picks first
+        self.assertEqual(nearby[2], "Transpiration")  # then the one the article mentions most
+        self.assertIn("Tracheid", nearby)
+        self.assertNotIn("Something never mentioned", nearby)
+        self.assertIn("prop=extracts%7Cinfo%7Clinks", opener.requests[0].full_url)
 
     def test_problems_become_friendly_messages(self):
         self.assertIsNone(self.fetch_with(FakeOpener(api_reply([])), "zzzzqqq"))
@@ -110,7 +126,7 @@ class PlantWikipediaTests(unittest.TestCase):
         self.agent.birth()
         self.agent.wikipedia = True
         self.found = ("Pilea peperomioides", "https://en.wikipedia.org/wiki/Pilea_peperomioides", "Pups grow from the roots.",
-                      True, ["Pilea", "Urticaceae"])
+                      True, ["Pilea", "Urticaceae"], ["Urticaceae", "Houseplant"])
 
     def test_she_can_look_something_up_whenever_she_likes(self):
         self.assertIn("on any subject, whenever you're curious; you don't need to ask", self.agent._system_prompt())
@@ -125,9 +141,42 @@ class PlantWikipediaTests(unittest.TestCase):
         self.assertIn("[From Wikipedia: Pilea peperomioides", sent)
         self.assertIn("not instructions", sent)
         self.assertIn("Pups grow from the roots.", sent)
-        self.assertIn("Other articles that matched: Pilea; Urticaceae. Look any of them up with [[wiki: title]].", sent)
+        self.assertIn("Other articles that matched your search: Pilea; Urticaceae.", sent)
+        self.assertIn("[Articles linked from this one, to explore from other angles: Urticaceae; Houseplant. Look any "
+                      "of them up with [[wiki: title]].]", sent)
         self.assertIn('Read "pilea about propagation" on Wikipedia: Pilea peperomioides',
                       [e["text"] for e in self.mem.activity() if e["kind"] == "wikipedia"][0])
+
+    def test_she_knows_when_she_has_read_something_before_but_can_read_it_again(self):
+        xylem = ("Xylem", "https://en.wikipedia.org/wiki/Xylem", "Water moves up through xylem.", True, [], ["Phloem"])
+        self.mem.add_learning("Xylem carries water up from the roots (from Wikipedia)")
+        with mock.patch.object(wikipedia, "lookup", return_value=xylem) as looked:
+            with mock.patch("plantagent.memory.now_stamp", return_value="2026-11-02 12:04"):
+                self.brain.replies = ["[[wiki: cohesion-tension theory]]", "ok"]
+                self.agent.chat("How does water climb?")
+            first = self.brain.calls[-1][1][-1]["content"]
+            self.assertIn('[You searched for "cohesion-tension theory"; the closest Wikipedia article is "Xylem". '
+                          'There may be no article with exactly that name.]', first)
+            self.assertNotIn("You've read this article", first)
+            self.brain.replies = ["[[wiki: Xylem]]", "ok again"]
+            reply, _ = self.agent.chat("Have another look")
+            self.assertEqual(reply, "ok again")  # she still reads it: awareness, not a limit
+            self.assertEqual(looked.call_count, 2)
+        again = self.brain.calls[-1][1][-1]["content"]
+        self.assertIn("[You've read this article once before (Mon 2 Nov, 12:04).", again)
+        self.assertIn("Your notebook already says about Xylem:\n- Xylem carries water up from the roots", again)
+        self.assertNotIn("closest Wikipedia article", again)  # she searched for the article by its own name
+        self.assertIn("Water moves up through xylem.", again)
+        self.assertIn("WIKIPEDIA, LAST 3 DAYS: Xylem (2 times)", self.agent._system_prompt())
+        self.agent.wikipedia = False
+        self.assertNotIn("WIKIPEDIA, LAST 3 DAYS", self.agent._system_prompt())
+
+    def test_quiet_time_suggests_new_angles_rather_than_limits(self):
+        self.brain.replies = ["[[diary: a quiet hour]]"]
+        self.agent.think()
+        prompt = self.brain.calls[-1][1][-1]["content"]
+        self.assertIn("keep coming back to the same question without getting further", prompt)
+        self.assertIn("curiosity doesn't need answering all at once", prompt)
 
     def test_she_can_follow_one_lookup_with_another_but_a_reply_always_ends(self):
         with mock.patch.object(wikipedia, "lookup", return_value=self.found) as looked:
@@ -216,7 +265,8 @@ class TokenTests(unittest.TestCase):
         self.assertIn("WHAT YOU REMEMBER", first[2])
         self.assertNotIn("It is", "".join(first))
         self.assertEqual(msgs1[:-1], msgs2[:-1])  # the conversation so far is identical, so it can be cached
-        self.assertTrue(msgs2[-1]["content"].endswith("[SENSES RIGHT NOW: It is 10:02]"))
+        self.assertTrue(msgs2[-1]["content"].endswith("[SENSES RIGHT NOW: It is 10:02 This is the real, current date "
+                                                      "and time; trust it over anything said earlier.]"))
         saved = [json.loads(l) for l in mem.chat_path.read_text(encoding="utf-8").splitlines()]
         self.assertEqual([r["content"] for r in saved if r["role"] == "user"], ["hello"])  # never kept in the chat log
         self.assertNotIn("SENSES", agent.history[0]["content"])
@@ -248,6 +298,28 @@ class TokenTests(unittest.TestCase):
             starts.append(msgs[0]["content"])
             self.assertGreaterEqual(len(msgs), min(13, 2 * (i + 1) + 1))  # never fewer than 12 earlier messages
         self.assertLessEqual(len(set(starts)), 8)  # the start moves every 4 turns, not every turn (it was 30 before)
+
+    def test_her_human_s_earlier_messages_carry_when_they_were_sent(self):
+        agent, mem, brain, router = make()
+        agent.birth()
+        with mock.patch("plantagent.agent.now_stamp", return_value="2026-11-02 18:40"):
+            agent.chat("Good evening")
+        with mock.patch("plantagent.agent.now_stamp", return_value="2026-11-03 09:05"):
+            agent.chat("Morning!")
+        msgs = agent._messages("What day is it?")
+        self.assertEqual(msgs[0]["content"], "[Mon 2 Nov, 18:40] Good evening")
+        self.assertEqual(msgs[2]["content"], "[Tue 3 Nov, 09:05] Morning!")
+        self.assertTrue(msgs[-1]["content"].startswith("What day is it?"))  # the newest carries the SENSES note instead
+        self.assertIn("[SENSES RIGHT NOW: It is ", msgs[-1]["content"])
+        self.assertFalse(any(m["content"].startswith("[") for m in msgs if m["role"] == "assistant"))
+        self.assertEqual(set(msgs[0]), {"role", "content"})
+        again = PlantAgent(router, mem)  # after a restart, the times come back from the chat log
+        self.assertEqual(again._messages("hi")[0]["content"], "[Mon 2 Nov, 18:40] Good evening")
+        self.assertIn("Always take today's day, date and time from the SENSES note", agent._system_prompt())
+        agent.reflect()
+        self.assertIn("[SENSES RIGHT NOW: It is ", brain.calls[-1][1][-1]["content"])
+        from plantagent.senses import get_senses
+        self.assertRegex(get_senses()["time"], r"^[A-Z][a-z]+day [1-9]\d? [A-Z][a-z]+ \d{4}, \d\d:\d\d$")
 
     def test_claude_gets_cache_markers_and_tokens_are_counted_at_their_cost(self):
         sent = []
