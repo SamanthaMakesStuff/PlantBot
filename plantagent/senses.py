@@ -16,7 +16,7 @@ def get_senses() -> dict:
     season = {12: "winter", 1: "winter", 2: "winter", 3: "spring", 4: "spring", 5: "spring",
               6: "summer", 7: "summer", 8: "summer", 9: "autumn", 10: "autumn", 11: "autumn"}[now.month]
     return {
-        "time": now.strftime("%A %d %B %Y, %H:%M"),
+        "time": f"{now:%A} {now.day} {now:%B %Y, %H:%M}",
         "part_of_day": part,
         "season_northern_hemisphere": season,
         # Not connected yet. Fill these in when you add sensors:

@@ -6,7 +6,7 @@ import json
 import re
 import shutil
 import threading
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from .pictures import MARKER, marker, unmark
@@ -68,6 +68,7 @@ class Memory:
         self.memory_path = self.dir / "memory.md"
         self.archive_path = self.dir / "memory_archive.md"
         self.notebook_path = self.dir / "notebook.md"  # things she has learnt; kept for good, never tidied away
+        self.wiki_reads_path = self.dir / "wikipedia_read.json"  # which Wikipedia articles she has read, and when
         self.diary_path = self.dir / "diary.md"
         self.wishes_path = self.dir / "wishes.md"
         self.chat_path = self.dir / "chat_log.jsonl"
@@ -116,6 +117,42 @@ class Memory:
 
     def notebook_items(self) -> list:
         return self._items(self.notebook_path)
+
+    def notebook_about(self, subject: str, max_chars: int = 1500) -> str:
+        """Her notebook entries that mention a subject, newest first."""
+        subject = re.sub(r"\s*\(.*?\)\s*", " ", subject).strip().lower()
+        if len(subject) < 3:
+            return ""
+        found, size = [], 0
+        for item in reversed(self.notebook_items()):
+            if subject in item["text"].lower():
+                if size + len(item["text"]) > max_chars:
+                    break
+                found.append(f"- {item['text']}")
+                size += len(item["text"])
+        return "\n".join(found)
+
+    # Wikipedia reading: kept so she knows when she's been here before, and can see her own patterns
+    def _wiki_reads(self) -> dict:
+        try:
+            return json.loads(self.wiki_reads_path.read_text(encoding="utf-8"))
+        except Exception:
+            return {}
+
+    def note_wiki_read(self, title: str) -> list:
+        """Records that she read an article now. Returns when she had read it before (oldest first)."""
+        with self._log_lock:
+            reads = self._wiki_reads()
+            before = list(reads.get(title, []))
+            reads[title] = (before + [now_stamp()])[-50:]
+            self.wiki_reads_path.write_text(json.dumps(reads, ensure_ascii=False), encoding="utf-8")
+            return before
+
+    def wiki_lately(self, days: int = 3) -> list:
+        """[(title, times read)] for the last few days, most-read first."""
+        since = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d %H:%M")
+        counts = [(t, sum(1 for s in stamps if s >= since)) for t, stamps in self._wiki_reads().items()]
+        return sorted([c for c in counts if c[1]], key=lambda c: (-c[1], c[0]))
 
     def add_diary(self, text: str) -> None:
         self._append(self.diary_path, f"## {now_stamp()}\n{text.strip()}\n")
@@ -263,9 +300,9 @@ class Memory:
         return rows
 
     # chat log
-    def append_chat(self, role: str, content: str) -> None:
+    def append_chat(self, role: str, content: str, t: str = "") -> None:
         with self.chat_path.open("a", encoding="utf-8") as f:
-            f.write(json.dumps({"t": now_stamp(), "role": role, "content": content}, ensure_ascii=False) + "\n")
+            f.write(json.dumps({"t": t or now_stamp(), "role": role, "content": content}, ensure_ascii=False) + "\n")
 
     def recent_chat(self, n: int = 12) -> list:
         if not self.chat_path.exists():
@@ -274,7 +311,7 @@ class Memory:
         for line in self.chat_path.read_text(encoding="utf-8").splitlines()[-n:]:
             try:
                 row = json.loads(line)
-                rows.append({"role": row["role"], "content": row["content"]})
+                rows.append({"role": row["role"], "content": row["content"], "t": row.get("t", "")})
             except Exception:
                 continue
         while rows and rows[0]["role"] != "user":
